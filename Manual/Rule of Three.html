@@ -9,10 +9,16 @@
     <link rel="stylesheet" type="text/css" href="css/main.css">
     <link rel="stylesheet" type="text/css" href="css/font.css">
     <script src="js/ktane-utils.js"></script>
+	<style>
+		.formula {
+			width: 100%;
+			margin-top: 0.5cm;
+		}
+	</style>
 </head>
 <body>
     <div class="section">
-        <div class="page page-bg-01">
+        <div class="page page-bg-02">
             <div class="page-header">
                 <span class="page-header-doc-title">Keep Talking and Nobody Explodes Mod</span>
                 <span class="page-header-section-title">Rule of Three</span>
@@ -21,14 +27,16 @@
                 <img src="img/Component/Rule of Three.svg" class="diagram">
                 <h2>On the Subject of Rule of Three</h2>
                 <p class="flavour-text">"Third time's the charm." -Someone who somehow miraculously survived two previous bomb explosions.</p>
-				<p>Three spheres, colored red, yellow, and blue, are floating within a 3D space, along the X, Y, and Z axes. Each sphere is sycling through three different positions.</p>
+				<p>Three spheres, colored red, yellow, and blue, are floating within a 3D space, along the <i>x</i>, <i>y</i>, and <i>z</i> axes. Each sphere is sycling through three different positions.</p>
 				<ul>
-					<li>They can be East or West from the center of the module (positive and negative X axis/left and right),</li>
-					<li>They can be at the top or bottom of the module (positive and negative Y axis/top and bottom),</li>
-					<li>They can be North or South from the center of the module (positive and negative Z axis/back and front),</li>
+					<li>They can be East or West from the center of the module (positive and negative <i>x</i> axis/left and right),</li>
+					<li>They can be at the top or bottom of the module (positive and negative <i>y</i> axis/top and bottom),</li>
+					<li>They can be North or South from the center of the module (positive and negative <i>z</i> axis/back and front),</li>
 					<li>Or they can be in the middle of any of these axes (neutral or zero).</li>
 				</ul>
-				<p>Take each axis and each position in the cycle, and convert them into balanced ternary, where 3<sup>0</sup> (the "least significant" bit) is linked the first cycle and 3<sup>2</sup> (the "most significant" bit) is linked to the third cycle. The three spheres should have three numbers each, resulting in a total of nine numbers.</p>
+				<p>Take each axis and each position in the cycle, and convert them into balanced ternary, where 3<sup>0</sup> (the "least significant" bit) is linked the first cycle and 3<sup>2</sup> (the "most significant" bit) is linked to the third cycle. Convert these numbers back into decimal and assign them to the sphere's values. The three spheres should have three numbers each, one from <i>x</i>, one from <i>y</i>, and one from <i>z</i>.</p>
+				<p>These points should be placed into 3D space. With the three points plotted, take them as coordiantes and assign them to the vertices of a triangle. Find the area of the triangle formed by the three coordinates by finding half of the following determinant:
+				<img src="img/Rule of Three/Leibniz formula.svg" class="formula">
             </div>
             <div class="page-footer relative-footer">Page 1 of 1</div>
         </div>
