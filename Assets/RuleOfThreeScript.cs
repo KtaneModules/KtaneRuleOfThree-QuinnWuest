@@ -281,13 +281,28 @@ public class RuleOfThreeScript : MonoBehaviour
         Debug.LogFormat("[Rule of Three #{0}] Blue values: {1}, {2}, {3}", _moduleId,
             _blueValues[0], _blueValues[1], _blueValues[2]);
 
-        var area = (int)(0.5 * 
+        var area = (int)(0.5 *
             Math.Sqrt(
-                Math.Pow((_yellowValues[1] - _redValues[1]) * (_blueValues[2] - _redValues[2]) - (_yellowValues[2] - _redValues[2]) * (_blueValues[1] - _redValues[1]), 2) + 
-                Math.Pow((_yellowValues[2] - _redValues[2]) * (_blueValues[0] - _redValues[0]) - (_yellowValues[0] - _redValues[0]) * (_blueValues[2] - _redValues[2]), 2) + 
+                Math.Pow((_yellowValues[1] - _redValues[1]) * (_blueValues[2] - _redValues[2]) - (_yellowValues[2] - _redValues[2]) * (_blueValues[1] - _redValues[1]), 2) +
+                Math.Pow((_yellowValues[2] - _redValues[2]) * (_blueValues[0] - _redValues[0]) - (_yellowValues[0] - _redValues[0]) * (_blueValues[2] - _redValues[2]), 2) +
                 Math.Pow((_yellowValues[0] - _redValues[0]) * (_blueValues[1] - _redValues[1]) - (_yellowValues[1] - _redValues[1]) * (_blueValues[0] - _redValues[0]), 2)
             ));
-        
+
         Debug.LogFormat("Area: {0}", area);
+
+        var areaTwo = 
+            (_redValues[0] * ((_yellowValues[1] * _blueValues[2]) - (_yellowValues[2] * _blueValues[1]))) -
+            (_redValues[1] * ((_yellowValues[0] * _blueValues[2]) - (_yellowValues[2] * _blueValues[0]))) +
+            (_redValues[2] * ((_yellowValues[0] * _blueValues[1]) - (_yellowValues[1] * _blueValues[0])));
+
+        Debug.LogFormat("Area 2: {0}", areaTwo);
+
+        var areaThree = (int)(0.5 * (
+
+            (_redValues[0] * _yellowValues[1] * _blueValues[2]) + (_redValues[1] * _yellowValues[2] * _blueValues[0]) + (_redValues[2] * _yellowValues[0] * _blueValues[1]) - 
+            (_redValues[2] * _yellowValues[1] * _blueValues[0]) - (_redValues[1] * _yellowValues[0] * _blueValues[2]) - (_redValues[0] * _yellowValues[2] * _blueValues[1])
+            ));
+
+        Debug.LogFormat("Area 3: {0}", areaThree);
     }
 }
