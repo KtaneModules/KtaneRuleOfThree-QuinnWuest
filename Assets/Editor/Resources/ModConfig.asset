@@ -14,7 +14,11 @@ MonoBehaviour:
   id: RuleOfThreeModule
   title: Rule of Three
   author: Quinn Wuest
-  description: Rule of Three
+  description: '"Third time''s the charm." -Someone who somehow miraculously survived
+    two previous bomb explosions.
+
+
+    Made by Quinn Wuest'
   version: v1.0
   outputFolder: build
-  previewImage: {fileID: 2800000, guid: 6f1930c17e7b2c64e97d7cf0caf42cac, type: 3}
+  previewImage: {fileID: 2800000, guid: 63c8de26cedb2554389c471649c7a8fb, type: 3}

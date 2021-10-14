@@ -12,15 +12,19 @@ public class RuleOfThreeScript : MonoBehaviour
     public KMAudio Audio;
     public GameObject[] SphereObjs;
     public GameObject[] CalcObjs;
-
+    public GameObject SpheresParent;
     public KMSelectable ModuleSel;
     public KMSelectable[] MovingSphereSels;
+    public Material[] DefaultMats;
+    public Material[] FlashMats;
 
     private int _moduleId;
     private static int _moduleIdCounter = 1;
     private bool _moduleSolved;
 
     private float[] _positions = { -0.04f, 0f, 0.04f };
+    private float[] _spinningPosX = { 0f, -0.0433f, 0.0433f };
+    private float[] _spinningPosZ = { 0.05f, -0.025f, -0.025f };
 
     private int[][] zPos = new int[3][];
     private int[][] xPos = new int[3][];
@@ -37,22 +41,21 @@ public class RuleOfThreeScript : MonoBehaviour
     private int[][] _sphPos = new int[3][];
 
     private bool _inCyclePhase = true;
-    private bool _isNegativeMovement = true;
 
-    private string[] _axisNames = { "X", "Y", "Z" };
-    private int _axisCycleIx;
-    private bool _isMoving;
-    private bool _isCycling;
+    private bool _canClick;
 
     private float _currentScale = 0.025f;
     private Coroutine _scaleSpheres;
+    private Coroutine _spinSpheres;
+    private bool _fullyShrunk;
+
+    private List<int> _answer;
+    private List<int> _input;
 
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
-
-        ModuleSel.OnFocus += ModuleFocus;
-        ModuleSel.OnDefocus += ModuleDefocus;
+        _canClick = true;
 
         for (int i = 0; i < MovingSphereSels.Length; i++)
             MovingSphereSels[i].OnInteract += MovingSpherePress(i);
@@ -72,43 +75,29 @@ public class RuleOfThreeScript : MonoBehaviour
         StartCoroutine(DoSphereCycle());
     }
 
-    private void ModuleFocus()
-    {
-        if (!_isCycling)
-        {
-            _axisCycleIx = (_axisCycleIx + 1) % 3;
-            Debug.LogFormat("[Rule of Three #{0}] After refocusing the module, the axis is now {1}.", _moduleId, _axisNames[_axisCycleIx]);
-            if (_scaleSpheres != null)
-                StopCoroutine(_scaleSpheres);
-            _scaleSpheres = StartCoroutine(ScaleSpheres(true));
-        }
-    }
-    private void ModuleDefocus()
-    {
-        if (_scaleSpheres != null)
-            StopCoroutine(_scaleSpheres);
-        StartCoroutine(ScaleSpheres(false));
-    }
-
     private KMSelectable.OnInteractHandler MovingSpherePress(int sphere)
     {
         return delegate ()
         {
-            if (_inCyclePhase)
+            if (_canClick && !_moduleSolved)
             {
-                _inCyclePhase = false;
-                for (int i = 0; i < 3; i++)
+                if (_inCyclePhase)
                 {
-                    _sphPos[i] = new int[3];
-                    for (int j = 0; j < 3; j++)
-                        _sphPos[i][j] = i - 1;
+                    _canClick = false;
+                    _inCyclePhase = false;
+                    _input = new List<int>();
+                    for (int i = 0; i < 3; i++)
+                    {
+                        _sphPos[i] = new int[3];
+                        for (int j = 0; j < 3; j++)
+                            _sphPos[i][j] = i - 1;
+                    }
                 }
-                Debug.LogFormat("[Rule of Three #{0}] Moved to input phase. Current axis is {1}", _moduleId, _axisNames[_axisCycleIx]);
-            }
-            else
-            {
-                if (!_isMoving)
-                    StartCoroutine(MoveSphere(sphere, _axisCycleIx));
+                else
+                {
+                    Audio.PlaySoundAtTransform("SphereClick", transform);
+                    _input.Add(sphere - 1);
+                }
             }
             return false;
         };
@@ -118,8 +107,6 @@ public class RuleOfThreeScript : MonoBehaviour
     {
         while (_inCyclePhase)
         {
-            _isCycling = true;
-            _isMoving = true;
             for (int j = 0; j < 3; j++)
             {
                 var duration = 1f;
@@ -142,7 +129,6 @@ public class RuleOfThreeScript : MonoBehaviour
             yield return new WaitForSeconds(1f);
             if (!_inCyclePhase)
                 StartCoroutine(PrepareSphereMovements());
-            _isMoving = false;
         }
     }
 
@@ -154,70 +140,39 @@ public class RuleOfThreeScript : MonoBehaviour
         {
             for (int i = 0; i < 3; i++)
                 SphereObjs[i].transform.localPosition = new Vector3(
-                    Easing.InOutQuad(elapsed, _positions[xPos[2][i]], 0.04f * (i - 1), duration),
-                    Easing.InOutQuad(elapsed, _positions[yPos[2][i]], 0.04f * (i - 1), duration),
-                    Easing.InOutQuad(elapsed, _positions[zPos[2][i]], 0.04f * (i - 1), duration)
+                    Easing.InOutQuad(elapsed, _positions[xPos[2][i]], _spinningPosX[i], duration),
+                    Easing.InOutQuad(elapsed, _positions[yPos[2][i]], 0f, duration),
+                    Easing.InOutQuad(elapsed, _positions[zPos[2][i]], _spinningPosZ[i], duration)
                 );
             yield return null;
             elapsed += Time.deltaTime;
         }
-        _isMoving = false;
-        _isCycling = false;
+        yield return new WaitForSeconds(0.5f);
+        _spinSpheres = StartCoroutine(SpinSpheres());
+        _canClick = true;
     }
 
-    private IEnumerator MoveSphere(int sph, int axis)
+    private IEnumerator SpinSpheres()
     {
-        _isMoving = true;
-        var duration = 0.2f;
-        var elapsed = 0f;
-        while (elapsed < duration)
+        _scaleSpheres = StartCoroutine(ScaleSpheres(true));
+        while (!_fullyShrunk)
         {
-            if (axis == 0)
+            var duration = 7f;
+            var elapsed = 0f;
+            while (elapsed < duration)
             {
-                if (_sphPos[sph][0] > 0)
-                    _isNegativeMovement = false;
-                if (_sphPos[sph][0] < 0)
-                    _isNegativeMovement = true;
-                SphereObjs[sph].transform.localPosition = new Vector3(
-                    Easing.InOutQuad(elapsed, 0.04f * _sphPos[sph][0], !_isNegativeMovement ? 0.04f * (_sphPos[sph][0] - 1) : 0.04f * (_sphPos[sph][0] + 1), duration),
-                    0.04f * _sphPos[sph][1],
-                    0.04f * _sphPos[sph][2]
-                    );
+                SpheresParent.transform.localEulerAngles = new Vector3(0f, Mathf.Lerp(0f, 360f, elapsed / duration), 0f);
+                yield return null;
+                elapsed += Time.deltaTime;
             }
-            if (axis == 1)
-            {
-                if (_sphPos[sph][1] > 0)
-                    _isNegativeMovement = false;
-                if (_sphPos[sph][1] < 0)
-                    _isNegativeMovement = true;
-                SphereObjs[sph].transform.localPosition = new Vector3(
-                    0.04f * _sphPos[sph][0],
-                    Easing.InOutQuad(elapsed, 0.04f * _sphPos[sph][1], !_isNegativeMovement ? 0.04f * (_sphPos[sph][1] - 1) : 0.04f * (_sphPos[sph][1] + 1), duration),
-                    0.04f * _sphPos[sph][2]
-                    );
-            }
-            if (axis == 2)
-            {
-                if (_sphPos[sph][2] > 0)
-                    _isNegativeMovement = false;
-                if (_sphPos[sph][2] < 0)
-                    _isNegativeMovement = true;
-                SphereObjs[sph].transform.localPosition = new Vector3(
-                    0.04f * _sphPos[sph][0],
-                    0.04f * _sphPos[sph][1],
-                    Easing.InOutQuad(elapsed, 0.04f * _sphPos[sph][2], !_isNegativeMovement ? 0.04f * (_sphPos[sph][2] - 1) : 0.04f * (_sphPos[sph][2] + 1), duration)
-                    );
-            }
-            yield return null;
-            elapsed += Time.deltaTime;
         }
-        _sphPos[sph][_axisCycleIx] = !_isNegativeMovement ? _sphPos[sph][_axisCycleIx] - 1 : _sphPos[sph][_axisCycleIx] + 1;
-        _isMoving = false;
     }
 
     private IEnumerator ScaleSpheres(bool shrink)
     {
-        var duration = shrink ? 10f : 0.2f;
+        if (shrink)
+            Audio.PlaySoundAtTransform("ComputerweltStart", transform);
+        var duration = shrink ? 14.56f : 0.3f;
         var elapsed = 0f;
         var initScale = _currentScale;
         while (elapsed < duration)
@@ -228,6 +183,47 @@ public class RuleOfThreeScript : MonoBehaviour
             yield return null;
             elapsed += Time.deltaTime;
         }
+        if (shrink)
+        {
+            for (int i = 0; i < 3; i++)
+                SphereObjs[i].transform.localScale = new Vector3(0f, 0f, 0f);
+            _fullyShrunk = true;
+            if (_input.Count != _answer.Count)
+                Strike();
+            else
+            {
+                bool correct = true;
+                for (int i = 0; i < _input.Count; i++)
+                    if (_input[i] != _answer[i])
+                        correct = false;
+                if (correct)
+                {
+                    Audio.PlaySoundAtTransform("ComputerweltFinish", transform);
+                    Module.HandlePass();
+                    _moduleSolved = true;
+                    Debug.LogFormat("[Rule of Three #{0}] Inputted {1}. Module solved!", _moduleId, BalTerToString(_input));
+                }
+                else
+                    Strike();
+            }
+        }
+    }
+
+    private void Strike()
+    {
+        Module.HandleStrike();
+        Debug.LogFormat("[Rule of Three #{0}] Inputted {1}. Strike.", _moduleId, BalTerToString(_input));
+        _inCyclePhase = true;
+        _fullyShrunk = false;
+        SpheresParent.transform.localEulerAngles = new Vector3(0f, 0f, 0f);
+        if (_scaleSpheres != null)
+            StopCoroutine(_scaleSpheres);
+        if (_spinSpheres != null)
+            StopCoroutine(_spinSpheres);
+        for (int i = 0; i < 3; i++)
+            SphereObjs[i].transform.localPosition = new Vector3(_positions[xPos[i][0]], _positions[yPos[i][0]], _positions[zPos[i][0]]);
+        _scaleSpheres = StartCoroutine(ScaleSpheres(false));
+        StartCoroutine(DoSphereCycle());
     }
 
     private void GenerateSpherePositions()
@@ -288,21 +284,56 @@ public class RuleOfThreeScript : MonoBehaviour
                 Math.Pow((_yellowValues[0] - _redValues[0]) * (_blueValues[1] - _redValues[1]) - (_yellowValues[1] - _redValues[1]) * (_blueValues[0] - _redValues[0]), 2)
             ));
 
-        Debug.LogFormat("Area: {0}", area);
+        Debug.LogFormat("[Rule of Three #{0}] The area of the triangle formed by these coordinates is {1} square units.", _moduleId, area);
+        _answer = DecimalToBalTer(area);
+        Debug.LogFormat("[Rule of Three #{0}] The area converted to balanced ternary is {1}.", _moduleId, BalTerToString(_answer));
+    }
 
-        var areaTwo = 
-            (_redValues[0] * ((_yellowValues[1] * _blueValues[2]) - (_yellowValues[2] * _blueValues[1]))) -
-            (_redValues[1] * ((_yellowValues[0] * _blueValues[2]) - (_yellowValues[2] * _blueValues[0]))) +
-            (_redValues[2] * ((_yellowValues[0] * _blueValues[1]) - (_yellowValues[1] * _blueValues[0])));
+    private List<int> DecimalToBalTer(int x)
+    {
+        var i = (int)Math.Ceiling(Math.Log(2 * x + 1) / Math.Log(3));
+        var Y = new List<int>();
+        while (i > 0)
+        {
+            if (Math.Abs(x) < ((int)Math.Pow(3, i - 1) + 1) / 2)
+            {
+                Y.Insert(0, 0);
+            }
+            else
+            {
+                if (x > 0)
+                {
+                    Y.Insert(0, 1);
+                    x -= (int)Math.Pow(3, i - 1);
+                }
+                else
+                {
+                    Y.Insert(0, -1);
+                    x += (int)Math.Pow(3, i - 1);
+                }
+            }
+            i--;
+        }
+        return Y;
+    }
 
-        Debug.LogFormat("Area 2: {0}", areaTwo);
+    private int BalTerToDecimal(List<int> balTer)
+    {
+        int value = 0;
+        for (int i = 0; i < balTer.Count; i++)
+        {
+            value += balTer[i] * (int)Math.Pow(3, i);
+        }
+        return value;
+    }
 
-        var areaThree = (int)(0.5 * (
-
-            (_redValues[0] * _yellowValues[1] * _blueValues[2]) + (_redValues[1] * _yellowValues[2] * _blueValues[0]) + (_redValues[2] * _yellowValues[0] * _blueValues[1]) - 
-            (_redValues[2] * _yellowValues[1] * _blueValues[0]) - (_redValues[1] * _yellowValues[0] * _blueValues[2]) - (_redValues[0] * _yellowValues[2] * _blueValues[1])
-            ));
-
-        Debug.LogFormat("Area 3: {0}", areaThree);
+    private string BalTerToString(List<int> balTer)
+    {
+        string s = "";
+        for (int i = 0; i < balTer.Count; i++)
+            s += balTer[i] == -1 ? "-" : balTer[i] == 0 ? "0" : "+";
+        if (s == "")
+            s = "0";
+        return s;
     }
 }
