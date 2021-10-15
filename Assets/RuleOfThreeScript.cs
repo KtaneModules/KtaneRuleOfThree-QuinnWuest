@@ -53,8 +53,6 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _answer;
     private List<int> _input;
 
-    private static readonly string[] _tpColorNames = new[] { "Red", "Yellow", "Blue" };
-
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
