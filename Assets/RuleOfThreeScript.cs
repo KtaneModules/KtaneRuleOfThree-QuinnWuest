@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Rnd = UnityEngine.Random;
 
@@ -52,6 +53,8 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _answer;
     private List<int> _input;
 
+    private static readonly string[] _tpColorNames = new[] { "Red", "Yellow", "Blue" };
+
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -81,6 +84,7 @@ public class RuleOfThreeScript : MonoBehaviour
         {
             if (_canClick && !_moduleSolved)
             {
+                Audio.PlaySoundAtTransform("SphereClick", transform);
                 if (_inCyclePhase)
                 {
                     _canClick = false;
@@ -95,7 +99,6 @@ public class RuleOfThreeScript : MonoBehaviour
                 }
                 else
                 {
-                    Audio.PlaySoundAtTransform("SphereClick", transform);
                     _input.Add(sphere - 1);
                 }
             }
@@ -335,5 +338,41 @@ public class RuleOfThreeScript : MonoBehaviour
         if (s == "")
             s = "0";
         return s;
+    }
+#pragma warning disable 414
+    private readonly string TwitchHelpMessage = @"Press the colored spheres with “!{0} press red yellow blue” or “!{0} R Y B”";
+#pragma warning restore 414
+
+    private IEnumerator ProcessTwitchCommand(string command)
+    {
+        var m = Regex.Match(command, @"^\s*(?:press |submit)([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        if (m.Success)
+        {
+            yield return null;
+            if (_inCyclePhase)
+                MovingSphereSels[0].OnInteract();
+            while (!_canClick)
+                yield return null;
+            foreach (var btn in m.Groups[1].Value.Where(ch => "rybRYB".Contains(ch)).Select(ch => MovingSphereSels["rybRYB".IndexOf(ch) % 3]))
+            {
+                btn.OnInteract();
+                yield return new WaitForSeconds(0.4f);
+            }
+            yield break;
+        }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve()
+    {
+        if (_inCyclePhase)
+            MovingSphereSels[0].OnInteract();
+        while (!_canClick)
+            yield return null;
+        _input = new List<int>();
+        for (int i = 0; i < _answer.Count; i++)
+        {
+            MovingSphereSels[_answer[i] + 1].OnInteract();
+            yield return new WaitForSeconds(0.4f);
+        }
     }
 }
