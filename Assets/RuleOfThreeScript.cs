@@ -14,10 +14,12 @@ public class RuleOfThreeScript : MonoBehaviour
     public GameObject[] SphereObjs;
     public GameObject[] CalcObjs;
     public GameObject SpheresParent;
+    public GameObject ModuleBackground;
     public KMSelectable ModuleSel;
     public KMSelectable[] MovingSphereSels;
     public Material[] DefaultMats;
-    public Material[] FlashMats;
+    public Material JMat;
+    public Material ThreeMat;
 
     private int _moduleId;
     private static int _moduleIdCounter = 1;
@@ -357,6 +359,18 @@ public class RuleOfThreeScript : MonoBehaviour
                 yield return new WaitForSeconds(0.4f);
             }
             yield break;
+        }
+        var j = Regex.Match(command, @"^\s*(?:j)+\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        if (j.Success)
+        {
+            yield return null;
+            ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
+        }
+        var t = Regex.Match(command, @"^\s*(?:3)+\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        if (t.Success)
+        {
+            yield return null;
+            ModuleBackground.GetComponent<MeshRenderer>().material = ThreeMat;
         }
     }
 
