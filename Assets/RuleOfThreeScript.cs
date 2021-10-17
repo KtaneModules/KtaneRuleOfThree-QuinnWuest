@@ -231,6 +231,7 @@ public class RuleOfThreeScript : MonoBehaviour
 
     private void GenerateSpherePositions()
     {
+    tryAgain:
         for (int i = 0; i < 3; i++)
         {
             xPos[i].Shuffle();
@@ -248,6 +249,12 @@ public class RuleOfThreeScript : MonoBehaviour
             _blueCoords[i][0] = xPos[i][2] - 1;
             _blueCoords[i][1] = yPos[i][2] - 1;
             _blueCoords[i][2] = zPos[i][2] - 1;
+        }
+        if ((_redCoords[0][0] == _redCoords[1][0] && _redCoords[0][1] == _redCoords[1][1] && _redCoords[0][2] == _redCoords[1][2]) ||
+            (_redCoords[0][0] == _redCoords[2][0] && _redCoords[0][1] == _redCoords[2][1] && _redCoords[0][2] == _redCoords[2][2]) ||
+            (_redCoords[1][0] == _redCoords[2][0] && _redCoords[1][1] == _redCoords[2][1] && _redCoords[1][2] == _redCoords[2][2]))
+        {
+            goto tryAgain;
         }
         Debug.LogFormat("[Rule of Three #{0}] Red coordinates: ({1}, {2}, {3}), ({4}, {5}, {6}), ({7}, {8}, {9}).", _moduleId,
             _redCoords[0][0], _redCoords[0][1], _redCoords[0][2],
@@ -365,6 +372,7 @@ public class RuleOfThreeScript : MonoBehaviour
         {
             yield return null;
             ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
+            yield return "sendtochat j";
         }
         var t = Regex.Match(command, @"^\s*(?:3)+\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         if (t.Success)
