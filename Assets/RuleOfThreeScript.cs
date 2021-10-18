@@ -394,5 +394,7 @@ public class RuleOfThreeScript : MonoBehaviour
             MovingSphereSels[_answer[i] + 1].OnInteract();
             yield return new WaitForSeconds(0.4f);
         }
+        while (!_moduleSolved)
+            yield return true;
     }
 }
