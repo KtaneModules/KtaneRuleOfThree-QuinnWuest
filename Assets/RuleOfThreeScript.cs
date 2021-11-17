@@ -347,7 +347,7 @@ public class RuleOfThreeScript : MonoBehaviour
         return s;
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"Press the colored spheres with “!{0} press red yellow blue” or “!{0} R Y B”";
+    private readonly string TwitchHelpMessage = @"!{0} press red yellow blue [Presses red, yellow, and blue spheres. Colors can be abbreviated to R Y B.]";
 #pragma warning restore 414
 
     private IEnumerator ProcessTwitchCommand(string command)
