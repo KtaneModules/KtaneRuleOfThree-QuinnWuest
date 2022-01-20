@@ -55,6 +55,8 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _answer;
     private List<int> _input;
 
+    private bool _isJ;
+
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -76,6 +78,20 @@ public class RuleOfThreeScript : MonoBehaviour
         for (int i = 0; i < 3; i++)
             SphereObjs[i].transform.localPosition = new Vector3(_positions[xPos[i][0]], _positions[yPos[i][0]], _positions[zPos[i][0]]);
         StartCoroutine(DoSphereCycle());
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.J) && !_isJ)
+        {
+            ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
+            _isJ = true;
+        }
+        if (Input.GetKeyDown(KeyCode.Alpha3) && _isJ)
+        {
+            ModuleBackground.GetComponent<MeshRenderer>().material = ThreeMat;
+            _isJ = false;
+        }
     }
 
     private KMSelectable.OnInteractHandler MovingSpherePress(int sphere)
