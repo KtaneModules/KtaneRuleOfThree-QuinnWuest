@@ -372,6 +372,8 @@ public class RuleOfThreeScript : MonoBehaviour
         if (m.Success)
         {
             yield return null;
+            yield return "solve";
+            yield return "strike";
             if (_inCyclePhase)
                 MovingSphereSels[0].OnInteract();
             while (!_canClick)
