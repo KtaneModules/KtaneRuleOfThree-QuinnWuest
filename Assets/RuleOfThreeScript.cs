@@ -42,9 +42,7 @@ public class RuleOfThreeScript : MonoBehaviour
     private int[] _blueValues = new int[3];
 
     private int[][] _sphPos = new int[3][];
-
     private bool _inCyclePhase = true;
-
     private bool _canClick;
 
     private float _currentScale = 0.025f;
@@ -56,6 +54,7 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _input;
 
     private bool _isJ;
+    private bool _canShitPants;
 
     private void Start()
     {
@@ -64,7 +63,8 @@ public class RuleOfThreeScript : MonoBehaviour
 
         for (int i = 0; i < MovingSphereSels.Length; i++)
             MovingSphereSels[i].OnInteract += MovingSpherePress(i);
-
+        Module.GetComponent<KMSelectable>().OnFocus += delegate () { _canShitPants = true; };
+        Module.GetComponent<KMSelectable>().OnDefocus += delegate () { _canShitPants = false; };
         for (int i = 0; i < 3; i++)
         {
             xPos[i] = new int[] { 0, 1, 2 };
@@ -82,6 +82,8 @@ public class RuleOfThreeScript : MonoBehaviour
 
     private void Update()
     {
+        if (!_canShitPants)
+            return;
         if (Input.GetKeyDown(KeyCode.J) && !_isJ)
         {
             ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
