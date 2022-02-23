@@ -142,9 +142,9 @@ GameObject:
   m_Component:
   - component: {fileID: 4143730853034934}
   - component: {fileID: 114604301788245488}
-  - component: {fileID: 114015414258766392}
   - component: {fileID: 114777409501434664}
   - component: {fileID: 114109981203348028}
+  - component: {fileID: 114015414258766392}
   - component: {fileID: 114978680841235908}
   m_Layer: 0
   m_Name: RuleOfThree

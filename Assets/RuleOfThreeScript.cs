@@ -45,7 +45,6 @@ public class RuleOfThreeScript : MonoBehaviour
     private bool _inCyclePhase = true;
     private bool _canClick;
 
-    private float _currentScale = 0.025f;
     private Coroutine _scaleSpheres;
     private Coroutine _spinSpheres;
     private bool _fullyShrunk;
@@ -195,12 +194,10 @@ public class RuleOfThreeScript : MonoBehaviour
             Audio.PlaySoundAtTransform("ComputerweltStart", transform);
         var duration = shrink ? 14.56f : 0.3f;
         var elapsed = 0f;
-        var initScale = _currentScale;
         while (elapsed < duration)
         {
             for (int i = 0; i < 3; i++)
-                SphereObjs[i].transform.localScale = new Vector3(Mathf.Lerp(initScale, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(initScale, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(initScale, shrink ? 0f : 0.025f, elapsed / duration));
-            _currentScale = Mathf.Lerp(initScale, shrink ? 0f : 0.025f, elapsed / duration);
+                SphereObjs[i].transform.localScale = new Vector3(Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration));
             yield return null;
             elapsed += Time.deltaTime;
         }
@@ -228,6 +225,11 @@ public class RuleOfThreeScript : MonoBehaviour
                     Strike();
             }
         }
+        else
+        {
+            for (int i = 0; i < 3; i++)
+                SphereObjs[i].transform.localScale = new Vector3(0.025f, 0.025f, 0.025f);
+        }
     }
 
     private void Strike()
@@ -249,7 +251,7 @@ public class RuleOfThreeScript : MonoBehaviour
 
     private void GenerateSpherePositions()
     {
-    tryAgain:
+        tryAgain:
         for (int i = 0; i < 3; i++)
         {
             xPos[i].Shuffle();
@@ -345,16 +347,6 @@ public class RuleOfThreeScript : MonoBehaviour
         return Y;
     }
 
-    private int BalTerToDecimal(List<int> balTer)
-    {
-        int value = 0;
-        for (int i = 0; i < balTer.Count; i++)
-        {
-            value += balTer[i] * (int)Math.Pow(3, i);
-        }
-        return value;
-    }
-
     private string BalTerToString(List<int> balTer)
     {
         string s = "";
@@ -370,7 +362,7 @@ public class RuleOfThreeScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        var m = Regex.Match(command, @"^\s*(?:press |submit)([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        var m = Regex.Match(command, @"^\s*(?:press\s+|submit\s+)?([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         if (m.Success)
         {
             yield return null;
