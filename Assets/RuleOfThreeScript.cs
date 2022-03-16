@@ -18,7 +18,6 @@ public class RuleOfThreeScript : MonoBehaviour
     public KMSelectable ModuleSel;
     public KMSelectable[] MovingSphereSels;
     public Material[] DefaultMats;
-    public Material JMat;
     public Material ThreeMat;
 
     private int _moduleId;
@@ -52,9 +51,6 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _answer;
     private List<int> _input;
 
-    private bool _isJ;
-    private bool _canShitPants;
-
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -62,8 +58,6 @@ public class RuleOfThreeScript : MonoBehaviour
 
         for (int i = 0; i < MovingSphereSels.Length; i++)
             MovingSphereSels[i].OnInteract += MovingSpherePress(i);
-        Module.GetComponent<KMSelectable>().OnFocus += delegate () { _canShitPants = true; };
-        Module.GetComponent<KMSelectable>().OnDefocus += delegate () { _canShitPants = false; };
         for (int i = 0; i < 3; i++)
         {
             xPos[i] = new int[] { 0, 1, 2 };
@@ -77,22 +71,6 @@ public class RuleOfThreeScript : MonoBehaviour
         for (int i = 0; i < 3; i++)
             SphereObjs[i].transform.localPosition = new Vector3(_positions[xPos[i][0]], _positions[yPos[i][0]], _positions[zPos[i][0]]);
         StartCoroutine(DoSphereCycle());
-    }
-
-    private void Update()
-    {
-        if (!_canShitPants)
-            return;
-        if (Input.GetKeyDown(KeyCode.J) && !_isJ)
-        {
-            ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
-            _isJ = true;
-        }
-        if (Input.GetKeyDown(KeyCode.Alpha3) && _isJ)
-        {
-            ModuleBackground.GetComponent<MeshRenderer>().material = ThreeMat;
-            _isJ = false;
-        }
     }
 
     private KMSelectable.OnInteractHandler MovingSpherePress(int sphere)
@@ -115,9 +93,7 @@ public class RuleOfThreeScript : MonoBehaviour
                     }
                 }
                 else
-                {
                     _input.Add(sphere - 1);
-                }
             }
             return false;
         };
@@ -378,19 +354,6 @@ public class RuleOfThreeScript : MonoBehaviour
                 yield return new WaitForSeconds(0.4f);
             }
             yield break;
-        }
-        var j = Regex.Match(command, @"^\s*(?:j)+\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        if (j.Success)
-        {
-            yield return null;
-            ModuleBackground.GetComponent<MeshRenderer>().material = JMat;
-            yield return "sendtochat j";
-        }
-        var t = Regex.Match(command, @"^\s*(?:3)+\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-        if (t.Success)
-        {
-            yield return null;
-            ModuleBackground.GetComponent<MeshRenderer>().material = ThreeMat;
         }
     }
 
