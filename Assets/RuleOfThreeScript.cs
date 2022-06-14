@@ -51,9 +51,15 @@ public class RuleOfThreeScript : MonoBehaviour
     private List<int> _answer;
     private List<int> _input;
 
+    public KMColorblindMode ColorblindMode;
+    public GameObject[] ColorblindText;
+    private bool _colorblindMode;
+
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
+        _colorblindMode = ColorblindMode.ColorblindModeActive;
+        SetColorblindMode(_colorblindMode);
         _canClick = true;
 
         for (int i = 0; i < MovingSphereSels.Length; i++)
@@ -71,6 +77,12 @@ public class RuleOfThreeScript : MonoBehaviour
         for (int i = 0; i < 3; i++)
             SphereObjs[i].transform.localPosition = new Vector3(_positions[xPos[i][0]], _positions[yPos[i][0]], _positions[zPos[i][0]]);
         StartCoroutine(DoSphereCycle());
+    }
+
+    private void SetColorblindMode(bool mode)
+    {
+        for (int i = 0; i < ColorblindText.Length; i++)
+            ColorblindText[i].SetActive(mode);
     }
 
     private KMSelectable.OnInteractHandler MovingSpherePress(int sphere)
@@ -338,7 +350,15 @@ public class RuleOfThreeScript : MonoBehaviour
 
     private IEnumerator ProcessTwitchCommand(string command)
     {
-        var m = Regex.Match(command, @"^\s*(?:press\s+|submit\s+)?([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        var m = Regex.Match(command, @"^\s*(?:colou?rblind\s*|cb\s*)\s*", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (m.Success)
+        {
+            yield return null;
+            _colorblindMode = !_colorblindMode;
+            SetColorblindMode(_colorblindMode);
+            yield break;
+        }
+        m = Regex.Match(command, @"^\s*(?:press\s+|submit\s+)?([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
         if (m.Success)
         {
             yield return null;
