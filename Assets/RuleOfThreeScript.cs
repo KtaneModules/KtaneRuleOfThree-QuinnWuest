@@ -194,6 +194,10 @@ public class RuleOfThreeScript : MonoBehaviour
             for (int i = 0; i < 3; i++)
                 SphereObjs[i].transform.localScale = new Vector3(0f, 0f, 0f);
             _fullyShrunk = true;
+            if (_input.Count == 0)
+                Strike();
+            while (_input.Count != 0 && _input[_input.Count - 1] == 0)
+                _input.RemoveAt(_input.Count - 1);
             if (_input.Count != _answer.Count)
                 Strike();
             else
