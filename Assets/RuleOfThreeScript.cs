@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
-using Rnd = UnityEngine.Random;
 
 public class RuleOfThreeScript : MonoBehaviour
 {
@@ -24,23 +23,23 @@ public class RuleOfThreeScript : MonoBehaviour
     private static int _moduleIdCounter = 1;
     private bool _moduleSolved;
 
-    private float[] _positions = { -0.04f, 0f, 0.04f };
-    private float[] _spinningPosX = { 0f, -0.0433f, 0.0433f };
-    private float[] _spinningPosZ = { 0.05f, -0.025f, -0.025f };
+    private static readonly float[] _positions = { -0.04f, 0f, 0.04f };
+    private static readonly float[] _spinningPosX = { 0f, -0.0433f, 0.0433f };
+    private static readonly float[] _spinningPosZ = { 0.05f, -0.025f, -0.025f };
 
-    private int[][] zPos = new int[3][];
-    private int[][] xPos = new int[3][];
-    private int[][] yPos = new int[3][];
+    private readonly int[][] zPos = new int[3][];
+    private readonly int[][] xPos = new int[3][];
+    private readonly int[][] yPos = new int[3][];
 
-    private int[][] _redCoords = new int[3][];
-    private int[][] _yellowCoords = new int[3][];
-    private int[][] _blueCoords = new int[3][];
+    private readonly int[][] _redCoords = new int[3][];
+    private readonly int[][] _yellowCoords = new int[3][];
+    private readonly int[][] _blueCoords = new int[3][];
 
-    private int[] _redValues = new int[3];
-    private int[] _yellowValues = new int[3];
-    private int[] _blueValues = new int[3];
+    private readonly int[] _redValues = new int[3];
+    private readonly int[] _yellowValues = new int[3];
+    private readonly int[] _blueValues = new int[3];
 
-    private int[][] _sphPos = new int[3][];
+    private readonly int[][] _sphPos = new int[3][];
     private bool _inCyclePhase = true;
     private bool _canClick;
 
@@ -122,13 +121,11 @@ public class RuleOfThreeScript : MonoBehaviour
                 while (elapsed < duration)
                 {
                     for (int i = 0; i < 3; i++)
-                    {
                         SphereObjs[i].transform.localPosition = new Vector3(
                             Easing.InOutQuad(elapsed, _positions[xPos[(j + 2) % 3][i]], _positions[xPos[j][i]], duration),
                             Easing.InOutQuad(elapsed, _positions[yPos[(j + 2) % 3][i]], _positions[yPos[j][i]], duration),
                             Easing.InOutQuad(elapsed, _positions[zPos[(j + 2) % 3][i]], _positions[zPos[j][i]], duration)
                         );
-                    }
                     yield return null;
                     elapsed += Time.deltaTime;
                 }
@@ -209,6 +206,8 @@ public class RuleOfThreeScript : MonoBehaviour
                 if (correct)
                 {
                     Audio.PlaySoundAtTransform("ComputerweltFinish", transform);
+                    if (_tpOrientation != 0)
+                        StartCoroutine(RotateModuleForTP(0));
                     Module.HandlePass();
                     _moduleSolved = true;
                     Debug.LogFormat("[Rule of Three #{0}] Inputted {1}. Module solved!", _moduleId, BalTerToString(_input));
@@ -218,14 +217,14 @@ public class RuleOfThreeScript : MonoBehaviour
             }
         }
         else
-        {
             for (int i = 0; i < 3; i++)
                 SphereObjs[i].transform.localScale = new Vector3(0.025f, 0.025f, 0.025f);
-        }
     }
 
     private void Strike()
     {
+        if (_tpOrientation != 0)
+            StartCoroutine(RotateModuleForTP(0));
         Module.HandleStrike();
         Debug.LogFormat("[Rule of Three #{0}] Inputted {1}. Strike.", _moduleId, BalTerToString(_input));
         _inCyclePhase = true;
@@ -249,15 +248,12 @@ public class RuleOfThreeScript : MonoBehaviour
             xPos[i].Shuffle();
             yPos[i].Shuffle();
             zPos[i].Shuffle();
-
             _redCoords[i][0] = xPos[i][0] - 1;
             _redCoords[i][1] = yPos[i][0] - 1;
             _redCoords[i][2] = zPos[i][0] - 1;
-
             _yellowCoords[i][0] = xPos[i][1] - 1;
             _yellowCoords[i][1] = yPos[i][1] - 1;
             _yellowCoords[i][2] = zPos[i][1] - 1;
-
             _blueCoords[i][0] = xPos[i][2] - 1;
             _blueCoords[i][1] = yPos[i][2] - 1;
             _blueCoords[i][2] = zPos[i][2] - 1;
@@ -265,9 +261,7 @@ public class RuleOfThreeScript : MonoBehaviour
         if ((_redCoords[0][0] == _redCoords[1][0] && _redCoords[0][1] == _redCoords[1][1] && _redCoords[0][2] == _redCoords[1][2]) ||
             (_redCoords[0][0] == _redCoords[2][0] && _redCoords[0][1] == _redCoords[2][1] && _redCoords[0][2] == _redCoords[2][2]) ||
             (_redCoords[1][0] == _redCoords[2][0] && _redCoords[1][1] == _redCoords[2][1] && _redCoords[1][2] == _redCoords[2][2]))
-        {
             goto tryAgain;
-        }
         Debug.LogFormat("[Rule of Three #{0}] Red coordinates: ({1}, {2}, {3}), ({4}, {5}, {6}), ({7}, {8}, {9}).", _moduleId,
             _redCoords[0][0], _redCoords[0][1], _redCoords[0][2],
             _redCoords[1][0], _redCoords[1][1], _redCoords[1][2],
@@ -284,14 +278,12 @@ public class RuleOfThreeScript : MonoBehaviour
             _blueCoords[2][0], _blueCoords[2][1], _blueCoords[2][2]
             );
         for (int i = 0; i < 3; i++)
-        {
             for (int j = 0; j < 3; j++)
             {
                 _redValues[i] += (int)Math.Pow(3, j) * _redCoords[j][i];
                 _yellowValues[i] += (int)Math.Pow(3, j) * _yellowCoords[j][i];
                 _blueValues[i] += (int)Math.Pow(3, j) * _blueCoords[j][i];
             }
-        }
         Debug.LogFormat("[Rule of Three #{0}] Red values: {1}, {2}, {3}", _moduleId,
             _redValues[0], _redValues[1], _redValues[2]);
         Debug.LogFormat("[Rule of Three #{0}] Yellow values: {1}, {2}, {3}", _moduleId,
@@ -299,6 +291,7 @@ public class RuleOfThreeScript : MonoBehaviour
         Debug.LogFormat("[Rule of Three #{0}] Blue values: {1}, {2}, {3}", _moduleId,
             _blueValues[0], _blueValues[1], _blueValues[2]);
 
+        // The equation in question
         var area = (int)(0.5 *
             Math.Sqrt(
                 Math.Pow((_yellowValues[1] - _redValues[1]) * (_blueValues[2] - _redValues[2]) - (_yellowValues[2] - _redValues[2]) * (_blueValues[1] - _redValues[1]), 2) +
@@ -318,9 +311,7 @@ public class RuleOfThreeScript : MonoBehaviour
         while (i > 0)
         {
             if (Math.Abs(x) < ((int)Math.Pow(3, i - 1) + 1) / 2)
-            {
                 Y.Insert(0, 0);
-            }
             else
             {
                 if (x > 0)
@@ -349,7 +340,7 @@ public class RuleOfThreeScript : MonoBehaviour
         return s;
     }
 #pragma warning disable 414
-    private readonly string TwitchHelpMessage = @"!{0} press red yellow blue [Presses red, yellow, and blue spheres. Colors can be abbreviated to R Y B.]";
+    private readonly string TwitchHelpMessage = @"!{0} press red yellow blue [Presses red, yellow, and blue spheres. Colors can be abbreviated to R Y B.] | !{0} rotate U [Rotate the module up. Directions are Forward (default), Up, Right, Down, Left.]";
 #pragma warning restore 414
 
     private IEnumerator ProcessTwitchCommand(string command)
@@ -368,6 +359,10 @@ public class RuleOfThreeScript : MonoBehaviour
             yield return null;
             yield return "solve";
             yield return "strike";
+            if (_tpOrientation != 0)
+                StartCoroutine(RotateModuleForTP(0));
+            while (_tpRotating)
+                yield return null;
             if (_inCyclePhase)
                 MovingSphereSels[0].OnInteract();
             while (!_canClick)
@@ -379,10 +374,70 @@ public class RuleOfThreeScript : MonoBehaviour
             }
             yield break;
         }
+        m = Regex.Match(command, @"^\s*rotate\s+(?<dir>forward|f|up|u|right|r|down|d|left|l)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (m.Success)
+        {
+            yield return null;
+            var rotIx = "furdl".IndexOf(m.Groups["dir"].Value[0]);
+            StartCoroutine(RotateModuleForTP(rotIx));
+        }
+    }
+
+    public GameObject TpParent;
+    private int _tpOrientation;
+    private bool _tpRotating;
+
+    private static readonly Vector3[] _tpEulerAngles = new Vector3[5]
+    {
+        new Vector3(0, 0, 0),
+        new Vector3(-90, 0, 0),
+        new Vector3(0, 0, 90),
+        new Vector3(90, 0, 0),
+        new Vector3(0, 0, -90)
+    };
+
+    private IEnumerator RotateModuleForTP(int dir)
+    {
+        _tpRotating = true;
+        var duration = 0.4f;
+        var elapsed = 0f;
+        var originalPos = TpParent.transform.localEulerAngles;
+        if (originalPos.x == 270)
+            originalPos.x = -90;
+        if (originalPos.z == 270)
+            originalPos.z = -90;
+        while (elapsed < duration)
+        {
+            TpParent.transform.localEulerAngles = new Vector3(
+                Mathf.Lerp(originalPos.x, 0, elapsed / duration),
+                0,
+                Mathf.Lerp(originalPos.z, 0, elapsed / duration)
+                );
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+        elapsed = 0f;
+        while (elapsed < duration)
+        {
+            TpParent.transform.localEulerAngles = new Vector3(
+                Mathf.Lerp(0, _tpEulerAngles[dir].x, elapsed / duration),
+                0,
+                Mathf.Lerp(0, _tpEulerAngles[dir].z, elapsed / duration)
+                );
+            yield return null;
+            elapsed += Time.deltaTime;
+        }
+        TpParent.transform.localEulerAngles = new Vector3(_tpEulerAngles[dir].x, 0, _tpEulerAngles[dir].z);
+        _tpRotating = false;
+        _tpOrientation = dir;
     }
 
     private IEnumerator TwitchHandleForcedSolve()
     {
+        if (_tpOrientation != 0)
+            StartCoroutine(RotateModuleForTP(0));
+        while (_tpRotating)
+            yield return null;
         if (_inCyclePhase)
             MovingSphereSels[0].OnInteract();
         while (!_canClick)
