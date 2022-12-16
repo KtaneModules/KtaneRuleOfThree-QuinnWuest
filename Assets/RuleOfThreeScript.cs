@@ -10,7 +10,9 @@ public class RuleOfThreeScript : MonoBehaviour
     public KMBombModule Module;
     public KMBombInfo BombInfo;
     public KMAudio Audio;
+
     public GameObject[] SphereObjs;
+    public Light[] SphereLights;
     public GameObject[] CalcObjs;
     public GameObject SpheresParent;
     public GameObject ModuleBackground;
@@ -54,6 +56,8 @@ public class RuleOfThreeScript : MonoBehaviour
     public GameObject[] ColorblindText;
     private bool _colorblindMode;
 
+    private float _lightsScale;
+
     private void Start()
     {
         _moduleId = _moduleIdCounter++;
@@ -76,6 +80,10 @@ public class RuleOfThreeScript : MonoBehaviour
         for (int i = 0; i < 3; i++)
             SphereObjs[i].transform.localPosition = new Vector3(_positions[xPos[i][0]], _positions[yPos[i][0]], _positions[zPos[i][0]]);
         StartCoroutine(DoSphereCycle());
+
+        _lightsScale = transform.lossyScale.x;
+        foreach (var light in SphereLights)
+            light.range *= _lightsScale;
     }
 
     private void SetColorblindMode(bool mode)
@@ -182,14 +190,20 @@ public class RuleOfThreeScript : MonoBehaviour
         while (elapsed < duration)
         {
             for (int i = 0; i < 3; i++)
+            {
                 SphereObjs[i].transform.localScale = new Vector3(Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration), Mathf.Lerp(shrink ? 0.025f : 0f, shrink ? 0f : 0.025f, elapsed / duration));
+                SphereLights[i].range = Mathf.Lerp(shrink ? 0.045f : 0, shrink ? 0 : 0.045f, elapsed / duration) * _lightsScale;
+            }
             yield return null;
             elapsed += Time.deltaTime;
         }
         if (shrink)
         {
             for (int i = 0; i < 3; i++)
+            {
                 SphereObjs[i].transform.localScale = new Vector3(0f, 0f, 0f);
+                SphereLights[i].range = 0f;
+            }
             _fullyShrunk = true;
             if (_input.Count == 0)
                 Strike();
@@ -218,7 +232,10 @@ public class RuleOfThreeScript : MonoBehaviour
         }
         else
             for (int i = 0; i < 3; i++)
+            {
                 SphereObjs[i].transform.localScale = new Vector3(0.025f, 0.025f, 0.025f);
+                SphereLights[i].range = 0.045f * _lightsScale;
+            }
     }
 
     private void Strike()
