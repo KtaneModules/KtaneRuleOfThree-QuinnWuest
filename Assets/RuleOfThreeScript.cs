@@ -370,7 +370,7 @@ public class RuleOfThreeScript : MonoBehaviour
             SetColorblindMode(_colorblindMode);
             yield break;
         }
-        m = Regex.Match(command, @"^\s*(?:press\s+|submit\s+)?([ryb ,;]+)\s*$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+        m = Regex.Match(command, @"^\s*(?:press\s+|submit\s+)?([ryb ,;]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         if (m.Success)
         {
             yield return null;
@@ -395,7 +395,7 @@ public class RuleOfThreeScript : MonoBehaviour
         if (m.Success)
         {
             yield return null;
-            var rotIx = "furdl".IndexOf(m.Groups["dir"].Value[0]);
+            var rotIx = "furdl".IndexOf(m.Groups["dir"].Value.ToLowerInvariant()[0]);
             StartCoroutine(RotateModuleForTP(rotIx));
         }
     }
