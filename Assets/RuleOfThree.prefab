@@ -1493,7 +1493,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - KT/Mobile/DiffuseTint
+  - Legacy Shaders/Transparent/Diffuse
 --- !u!114 &114251206581998336
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1551,7 +1551,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - KT/Mobile/DiffuseTint
+  - Legacy Shaders/Transparent/Diffuse
 --- !u!114 &114560324358655674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1577,7 +1577,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShaderNames:
-  - KT/Mobile/DiffuseTint
+  - Legacy Shaders/Transparent/Diffuse
 --- !u!114 &114604301788245488
 MonoBehaviour:
   m_ObjectHideFlags: 1
